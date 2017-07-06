@@ -19,7 +19,9 @@ use WildPHP\Core\Channels\Channel;
 use WildPHP\Core\Commands\CommandHandler;
 use WildPHP\Core\Commands\CommandHelp;
 use WildPHP\Core\ComponentContainer;
+use WildPHP\Core\Connection\IRCMessages\PRIVMSG;
 use WildPHP\Core\Connection\Queue;
+use WildPHP\Core\Connection\TextFormatter;
 use WildPHP\Core\ContainerTrait;
 use WildPHP\Core\EventEmitter;
 use WildPHP\Core\Modules\BaseModule;
@@ -50,11 +52,12 @@ class Calculator extends BaseModule
 		CommandHandler::fromContainer($container)
 			->registerCommand('calc', [$this, 'calcCommand'], $commandHelp, 1, -1);
 
-		EventEmitter::fromContainer($container)->on('telegram.commands.add', function (TGCommandHandler $commandHandler)
-		{
-			$commandHandler->registerCommand('calc', [$this, 'calcTGCommand'], null, 1, -1);
-			$commandHandler->alias('calc', 'c');
-		});
+		EventEmitter::fromContainer($container)
+			->on('telegram.commands.add', function (TGCommandHandler $commandHandler)
+			{
+				$commandHandler->registerCommand('calc', [$this, 'calcTGCommand'], null, 1, -1);
+				$commandHandler->alias('calc', 'c');
+			});
 
 		$this->mathParser = new StdMathParser();
 	}
@@ -73,7 +76,8 @@ class Calculator extends BaseModule
 
 		$msg = $user->getNickname() . ' > ' . $msg;
 
-		Queue::fromContainer($container)->privmsg($source->getName(), $msg);
+		Queue::fromContainer($container)
+			->privmsg($source->getName(), $msg);
 	}
 
 	/**
@@ -97,10 +101,17 @@ class Calculator extends BaseModule
 			$sendMessage->chat_id = $chat_id;
 			$sendMessage->text = $msg;
 			$telegram->performApiRequest($sendMessage);
+
 			return;
 		}
 
-		Queue::fromContainer($this->getContainer())->privmsg($channel, $msg);
+		$privmsg = new PRIVMSG($channel, TextFormatter::consistentStringColor($username) . ' sent math expression "' . $expression . '", result:');
+		$privmsg->setMessageParameters(['relay_ignore']);
+
+		Queue::fromContainer($this->getContainer())
+			->insertMessage($privmsg);
+		Queue::fromContainer($this->getContainer())
+			->privmsg($channel, $msg);
 	}
 
 	/**

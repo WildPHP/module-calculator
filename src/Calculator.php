@@ -96,6 +96,7 @@ class Calculator extends BaseModule
 			$sendMessage = new SendMessage();
 			$sendMessage->chat_id = $chat_id;
 			$sendMessage->text = $msg;
+			$telegram->performApiRequest($sendMessage);
 			return;
 		}
 

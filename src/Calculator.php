@@ -9,9 +9,7 @@
 namespace WildPHP\Modules\Calculator;
 
 
-use MathParser\Exceptions\DivisionByZeroException;
 use MathParser\Exceptions\MathParserException;
-use MathParser\Exceptions\SyntaxErrorException;
 use MathParser\Interpreting\Evaluator;
 use MathParser\StdMathParser;
 use unreal4u\TelegramAPI\Telegram\Methods\SendMessage;

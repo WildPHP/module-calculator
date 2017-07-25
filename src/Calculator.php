@@ -46,7 +46,7 @@ class Calculator extends BaseModule
 		$this->setContainer($container);
 
 		$commandHelp = new CommandHelp();
-		$commandHelp->addPage('Calculates the result of a mathematical expression. Usage: calc [expression]');
+		$commandHelp->append('Calculates the result of a mathematical expression. Usage: calc [expression]');
 		CommandHandler::fromContainer($container)
 			->registerCommand('calc', [$this, 'calcCommand'], $commandHelp, 1, -1);
 

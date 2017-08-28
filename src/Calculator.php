@@ -14,8 +14,11 @@ use MathParser\Interpreting\Evaluator;
 use MathParser\StdMathParser;
 use unreal4u\TelegramAPI\Telegram\Methods\SendMessage;
 use WildPHP\Core\Channels\Channel;
+use WildPHP\Core\Commands\Command;
 use WildPHP\Core\Commands\CommandHandler;
 use WildPHP\Core\Commands\CommandHelp;
+use WildPHP\Core\Commands\ParameterStrategy;
+use WildPHP\Core\Commands\StringParameter;
 use WildPHP\Core\ComponentContainer;
 use WildPHP\Core\Connection\IRCMessages\PRIVMSG;
 use WildPHP\Core\Connection\Queue;
@@ -45,15 +48,28 @@ class Calculator extends BaseModule
 	{
 		$this->setContainer($container);
 
-		$commandHelp = new CommandHelp();
-		$commandHelp->append('Calculates the result of a mathematical expression. Usage: calc [expression]');
-		CommandHandler::fromContainer($container)
-			->registerCommand('calc', [$this, 'calcCommand'], $commandHelp, 1, -1);
+		CommandHandler::fromContainer($container)->registerCommand('calc', new Command(
+			[$this, 'calcCommand'],
+			new ParameterStrategy(1, -1, [
+				'expression' => new StringParameter()
+			], true),
+			new CommandHelp([
+				'Calculates the result of a mathematical expression. Usage: calc [expression]'
+			])
+		));
 
 		EventEmitter::fromContainer($container)
 			->on('telegram.commands.add', function (TGCommandHandler $commandHandler)
 			{
-				$commandHandler->registerCommand('calc', [$this, 'calcTGCommand'], null, 1, -1);
+				$commandHandler->registerCommand('calc', new Command(
+					[$this, 'calcTGCommand'],
+					new ParameterStrategy(1, -1, [
+						'expression' => new StringParameter()
+					], true),
+					new CommandHelp([
+						'Calculates the result of a mathematical expression. Usage: calc [expression]'
+					])
+				));
 				$commandHandler->alias('calc', 'c');
 			});
 
